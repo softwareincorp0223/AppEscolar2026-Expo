@@ -12,7 +12,7 @@ export default function Index() {
   }, []);
 
   return (
-    <View className="flex-1 items-center justify-center bg-background-light">
+    <View className="flex-1 items-center justify-center bg-[#0D6EFD]">
       <Image
         source={{
           uri: "https://ik.imagekit.io/softwareincorp/Asset%202-8.png?updatedAt=1757634423341", 
@@ -22,7 +22,7 @@ export default function Index() {
       />
 
       {/* LOADER */}
-      <ActivityIndicator size="large" color="0D6EFD" />
+      <ActivityIndicator size="large" color="white" />
     </View>
   );
 }

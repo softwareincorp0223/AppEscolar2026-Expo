@@ -20,21 +20,24 @@ const LoginNativa = () => {
     }, 1000);
   }, []);
 
-  const handleBarCodeRead = async ({ data }: any) => {
+  const handleBarCodeRead = async (scanResult: any) => {
     if (scanSuccessful) return;
+
+    console.log("SCAN COMPLETO:", scanResult);
+
+    const data = scanResult?.data;
+
+    if (!data) {
+      console.log("❌ No hay data");
+      return;
+    }
+
+    console.log("✅ QR leído:", data);
 
     try {
       const response = await loginWithQR(data);
-      console.log("response QR");
-      console.log(response);
+      console.log("RESPONSE:", response);
 
-      // luego activas esto
-      /*
-      if (response?.status === "success") {
-        setScanSuccessful(true);
-        navigation.navigate("DetallesAlumno" as never);
-      }
-      */
     } catch (error) {
       Alert.alert("Error", "No se pudo conectar al servidor");
     }
@@ -70,7 +73,7 @@ const LoginNativa = () => {
 
   return (
     <View className="flex-1 bg-blue-600">
-      
+
       {/* HEADER */}
       <View className="flex-1 justify-center items-center px-5">
         <Text className="text-white text-lg font-bold text-center">

@@ -2,7 +2,7 @@ import axios from "axios";
 
 // instancia base
 const api = axios.create({
-  baseURL: "http://localhost/apiAppEscolarv2/", // <-- cambia esto
+  baseURL: "http://192.168.100.11/apiAppEscolarv2/", // <-- cambia esto
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
