@@ -10,12 +10,17 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      
+      <Stack
+        screenOptions={{
+          headerShown: false, 
+        }}
+      >
         {/* Ruta principal */}
-        <Stack.Screen name="pages/home" options={{ title: "Home" }} />
+        <Stack.Screen name="pages/home" />
 
-        {/* Aquí puedes agregar más pantallas */}
-        <Stack.Screen name="pages/details" options={{ title: "Details" }} />
+        {/* Más pantallas */}
+        <Stack.Screen name="pages/details" />
       </Stack>
 
       <StatusBar style="auto" />
