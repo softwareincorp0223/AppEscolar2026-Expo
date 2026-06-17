@@ -2,7 +2,7 @@
   "expo": {
     "name": "AppEscolar2026",
     "slug": "AppEscolar2026",
-    "version": "1.0.0",
+    "version": "1.4.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "appescolar2026",
@@ -12,6 +12,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.prueba_react",
+      "versionCode": 41,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -44,6 +46,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "bd7c73b3-696c-4cb9-b533-c83d9746fe57"
+      }
     }
   }
 }

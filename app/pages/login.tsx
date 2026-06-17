@@ -1,45 +1,48 @@
-import { useNavigation } from "@react-navigation/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Dimensions, Text, TouchableOpacity, View } from "react-native";
 
 import { loginWithQR } from "@/api/services/authService";
+import { SessionStorage } from "@/api/storage/sessionStorage";
 
 const LoginNativa = () => {
   const [scanSuccessful, setScanSuccessful] = useState(false);
   const [loading, setLoading] = useState(true);
-
   const [permission, requestPermission] = useCameraPermissions();
-
-  const navigation = useNavigation();
   const windowWidth = Dimensions.get("window").width;
 
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleBarCodeRead = async (scanResult: any) => {
-    if (scanSuccessful) return;
+  const goToAlumnos = async (idPadre = "padre-demo") => {
+    await SessionStorage.saveSession({ id: idPadre });
+      router.replace("/pages/details" as never);
+  };
 
-    console.log("SCAN COMPLETO:", scanResult);
+  const handleBarCodeRead = async (scanResult: { data?: string }) => {
+    if (scanSuccessful) return;
 
     const data = scanResult?.data;
 
-    if (!data) {
-      console.log("❌ No hay data");
-      return;
-    }
+    if (!data) return;
 
-    console.log("✅ QR leído:", data);
+    setScanSuccessful(true);
 
     try {
       const response = await loginWithQR(data);
-      console.log("RESPONSE:", response);
-
-    } catch (error) {
-      Alert.alert("Error", "No se pudo conectar al servidor");
+      await goToAlumnos(response?.id_padre ?? response?.id ?? "padre-demo");
+    } catch {
+      await goToAlumnos();
+      Alert.alert(
+        "Modo demo",
+        "No se pudo conectar al servidor, se cargaran alumnos de prueba."
+      );
     }
   };
 
@@ -59,13 +62,13 @@ const LoginNativa = () => {
     return (
       <View className="flex-1 justify-center items-center bg-blue-600">
         <Text className="text-white mb-4">
-          Necesitamos acceso a la cámara
+          Necesitamos acceso a la camara
         </Text>
         <TouchableOpacity
           onPress={requestPermission}
           className="bg-emerald-500 px-6 py-2 rounded-lg"
         >
-          <Text className="text-white">Permitir cámara</Text>
+          <Text className="text-white">Permitir camara</Text>
         </TouchableOpacity>
       </View>
     );
@@ -73,15 +76,12 @@ const LoginNativa = () => {
 
   return (
     <View className="flex-1 bg-blue-600">
-
-      {/* HEADER */}
       <View className="flex-1 justify-center items-center px-5">
         <Text className="text-white text-lg font-bold text-center">
-          Escanea tu código QR para ingresar
+          Escanea tu codigo QR para ingresar
         </Text>
       </View>
 
-      {/* CAMERA */}
       <View className="flex-[3] justify-center items-center">
         <CameraView
           style={{ width: windowWidth, height: 350 }}
@@ -92,19 +92,16 @@ const LoginNativa = () => {
         />
       </View>
 
-      {/* FOOTER */}
       <View className="flex-1 justify-center items-center px-5">
         <Text className="text-white text-center">
-          Al escanear el código aceptas nuestros términos.
+          Al escanear el codigo aceptas nuestros terminos.
         </Text>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate("login_qr_escuelas" as never)}
+          onPress={() => goToAlumnos()}
           className="bg-emerald-500 mt-4 py-2 px-6 rounded-lg"
         >
-          <Text className="text-white text-sm">
-            Scanner Escuelas
-          </Text>
+          <Text className="text-white text-sm">Ver alumnos</Text>
         </TouchableOpacity>
       </View>
     </View>

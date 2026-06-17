@@ -5,7 +5,7 @@ import { ActivityIndicator, Image, View } from "react-native";
 export default function Index() {
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/pages/home");
+      router.replace("/pages/login" as never);
     }, 2000); // tiempo del loader (ms)
 
     return () => clearTimeout(timer);
