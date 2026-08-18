@@ -2,7 +2,7 @@ import axios from "axios";
 
 // instancia base
 const api = axios.create({
-  baseURL: "http://192.168.100.11/apiAppEscolarv2/", // <-- cambia esto
+  baseURL: "http://192.168.100.11:4000/api/mobile", // backend Node mobile temporal
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

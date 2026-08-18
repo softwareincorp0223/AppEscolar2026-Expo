@@ -1,3 +1,4 @@
+import api from "@/api/axiosConfig";
 import { SessionStorage } from "@/api/storage/sessionStorage";
 import { NotificationsState } from "@/types/mensaje";
 import { Perfil } from "@/types/perfil";
@@ -13,7 +14,7 @@ const emptyNotifications: NotificationsState = {
   Calificaciones: false,
   Calendario: false,
   Asistencias: false,
-  Configuracion: false,
+  Perfil: false,
 };
 
 const dummyResponse: PerfilData = {
@@ -35,7 +36,15 @@ const dummyResponse: PerfilData = {
 
 export const PerfilService = {
   async getPerfil(): Promise<PerfilData> {
-    return dummyResponse;
+    try {
+      const { idPadre } = await SessionStorage.getSession();
+
+      return (await api.get<PerfilData>("/perfil", {
+        params: { id_padre: idPadre },
+      })) as unknown as PerfilData;
+    } catch {
+      return dummyResponse;
+    }
   },
 
   async logout() {
@@ -43,6 +52,13 @@ export const PerfilService = {
   },
 
   async getNotifications(): Promise<NotificationsState> {
-    return emptyNotifications;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      return (await api.get<NotificationsState>("/notificaciones", {
+        params: { sid_alumno: sidAlumno },
+      })) as unknown as NotificationsState;
+    } catch {
+      return emptyNotifications;
+    }
   },
 };

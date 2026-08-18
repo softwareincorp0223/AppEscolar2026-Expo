@@ -3,6 +3,7 @@ import {
   FlatList,
   Image,
   ListRenderItem,
+  RefreshControl,
   Text,
   TouchableOpacity,
   useWindowDimensions,
@@ -18,6 +19,8 @@ const FILES_BASE_URL = "https://aplicacionescolar.com/sistema/archivos";
 interface AlumnosListProps {
   data: Alumno[];
   onSelectAlumno: (alumno: Alumno) => void;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 function getAlumnoImageUri(foto: Alumno["foto"]) {
@@ -31,14 +34,19 @@ function getAlumnoImageUri(foto: Alumno["foto"]) {
 function hasNotifications(alumno: Alumno) {
   return Boolean(
     alumno.mensajes_no_leidos ||
-      alumno.seguimiento_no_leidos ||
-      alumno.tareas_no_leidas ||
-      alumno.evaluacion_no_leidos ||
-      alumno.asistencia_no_leidas
+    alumno.seguimiento_no_leidos ||
+    alumno.tareas_no_leidas ||
+    alumno.evaluacion_no_leidos ||
+    alumno.asistencia_no_leidas,
   );
 }
 
-function AlumnosList({ data, onSelectAlumno }: AlumnosListProps) {
+function AlumnosList({
+  data,
+  onSelectAlumno,
+  onRefresh,
+  refreshing = false,
+}: AlumnosListProps) {
   const { width } = useWindowDimensions();
   const cardWidth = Math.min(width * 0.8, 420);
 
@@ -70,7 +78,7 @@ function AlumnosList({ data, onSelectAlumno }: AlumnosListProps) {
         )}
       </TouchableOpacity>
     ),
-    [cardWidth, onSelectAlumno]
+    [cardWidth, onSelectAlumno],
   );
 
   return (
@@ -80,6 +88,16 @@ function AlumnosList({ data, onSelectAlumno }: AlumnosListProps) {
         renderItem={renderItem}
         keyExtractor={(item) => item.id_alumno}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#0D6EFD"
+              colors={["#0D6EFD"]}
+            />
+          ) : undefined
+        }
         contentContainerClassName="flex-grow items-center justify-center py-5"
       />
     </View>

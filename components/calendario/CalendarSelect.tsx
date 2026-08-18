@@ -52,10 +52,10 @@ export default function CalendarSelect<T extends string | number>({
         onRequestClose={() => setVisible(false)}
       >
         <Pressable
-          className="flex-1 justify-end bg-black/40"
+          className="flex-1 items-center justify-center bg-black/40 px-5"
           onPress={() => setVisible(false)}
         >
-          <Pressable className="max-h-[70%] rounded-t-2xl bg-white p-4">
+          <Pressable className="max-h-[70%] w-full max-w-[380px] rounded-2xl bg-white p-4">
             <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-lg font-bold text-[#212529]">{label}</Text>
               <TouchableOpacity onPress={() => setVisible(false)}>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "137411754684",
+    "project_id": "appescolar2026",
+    "storage_bucket": "appescolar2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:137411754684:android:3ff1c5b156d13bd1fe6eb9",
+        "android_client_info": {
+          "package_name": "com.prueba_react"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVtGLH-Ta4uLp7DtU58PeMFsaVVOowFYQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

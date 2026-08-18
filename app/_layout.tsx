@@ -16,6 +16,9 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="pages/login" />
+        <Stack.Screen name="pages/login-attendance" />
+        <Stack.Screen name="pages/forgot-attendance" />
+        <Stack.Screen name="pages/qr-attendance" />
         <Stack.Screen name="pages/details" />
         <Stack.Screen name="pages/messages" />
         <Stack.Screen name="pages/tasks" />

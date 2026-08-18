@@ -15,7 +15,7 @@ interface MenuItem {
 interface AppMenuProps {
   currentScreen: MenuScreen;
   notifications: NotificationsState;
-  onReload?: () => void;
+  onReload?: () => Promise<void> | void;
 }
 
 const menuItems: MenuItem[] = [
@@ -25,7 +25,7 @@ const menuItems: MenuItem[] = [
   { screen: "Calificaciones", icon: "star", label: "Calificaciones" },
   { screen: "Calendario", icon: "calendar", label: "Calendario" },
   { screen: "Asistencias", icon: "address-book", label: "Asistencias" },
-  { screen: "Configuracion", icon: "cog", label: "Configuracion" },
+  { screen: "Perfil", icon: "user", label: "Perfil" },
 ];
 
 export default function AppMenu({
@@ -34,6 +34,11 @@ export default function AppMenu({
   onReload,
 }: AppMenuProps) {
   const handlePress = (screen: MenuScreen) => {
+    if (screen === currentScreen) {
+      void onReload?.();
+      return;
+    }
+
     if (screen === "Mensajes") {
       router.push("/pages/messages" as never);
     }
@@ -58,37 +63,41 @@ export default function AppMenu({
       router.push("/pages/attendance" as never);
     }
 
-    if (screen === "Configuracion") {
+    if (screen === "Perfil") {
       router.push("/pages/profile" as never);
     }
-
-    onReload?.();
   };
 
   return (
     <SafeAreaView edges={[]} className="bg-[#0D6EFD]">
       <View className="flex-row items-end justify-around border-t border-white/40 bg-[#0D6EFD] py-2">
-        {menuItems.map(({ screen, icon, label }) => (
-          <TouchableOpacity
-            key={screen}
-            activeOpacity={0.7}
-            className="items-center justify-center p-1"
-            onPress={() => handlePress(screen)}
-          >
-            <View className="relative">
-              <FontAwesome name={icon} size={18} color="#fff" />
-              {notifications[screen] && (
-                <View className="absolute -right-2 -top-1 h-2.5 w-2.5 rounded-full border border-white bg-red-600" />
-              )}
-            </View>
+        {menuItems.map(({ screen, icon, label }) => {
+          const hasNotification =
+            notifications[screen] ||
+            (screen === "Perfil" && notifications.Configuracion);
 
-            {currentScreen === screen && (
-              <Text className="mt-1 text-center text-[11px] text-white">
-                {label}
-              </Text>
-            )}
-          </TouchableOpacity>
-        ))}
+          return (
+            <TouchableOpacity
+              key={screen}
+              activeOpacity={0.7}
+              className="items-center justify-center p-1"
+              onPress={() => handlePress(screen)}
+            >
+              <View className="relative">
+                <FontAwesome name={icon} size={18} color="#fff" />
+                {hasNotification && (
+                  <View className="absolute -right-2 -top-1 h-2.5 w-2.5 rounded-full border border-white bg-red-600" />
+                )}
+              </View>
+
+              {currentScreen === screen && (
+                <Text className="mt-1 text-center text-[11px] text-white">
+                  {label}
+                </Text>
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </SafeAreaView>
   );

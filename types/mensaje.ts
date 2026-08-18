@@ -17,6 +17,7 @@ export interface Mensaje {
   periodo?: string;
   repetir?: string;
   respuesta_rapida?: string;
+  permite_respuesta_rapida?: string;
   sid_alumno?: string;
   sid_alumno_mensaje?: string | null;
   sid_extracurricular?: string;
@@ -50,6 +51,8 @@ export type MenuScreen =
   | "Calificaciones"
   | "Calendario"
   | "Asistencias"
-  | "Configuracion";
+  | "Perfil";
 
-export type NotificationsState = Record<MenuScreen, boolean>;
+export type NotificationsState = Record<MenuScreen, boolean> & {
+  Configuracion?: boolean;
+};

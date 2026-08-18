@@ -1,8 +1,16 @@
+import api from "@/api/axiosConfig";
+import { SessionStorage } from "@/api/storage/sessionStorage";
 import { Asistencia } from "@/types/asistencia";
 import { NotificationsState } from "@/types/mensaje";
 
 export interface AsistenciasData {
+  asistenciasHoy?: Asistencia[];
   asistencias: Asistencia[];
+  pagination?: {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
 }
 
 const emptyNotifications: NotificationsState = {
@@ -12,7 +20,7 @@ const emptyNotifications: NotificationsState = {
   Calificaciones: false,
   Calendario: false,
   Asistencias: false,
-  Configuracion: false,
+  Perfil: false,
 };
 
 const dummyResponse = {
@@ -63,17 +71,34 @@ const dummyResponse = {
 };
 
 export const AsistenciaService = {
-  async getAsistencias(): Promise<AsistenciasData> {
-    return {
-      asistencias: dummyResponse.fila,
-    };
+  async getAsistencias(limit = 20, offset = 0): Promise<AsistenciasData> {
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      return (await api.get<AsistenciasData>("/asistencias", {
+        params: { sid_alumno: sidAlumno, limit, offset },
+      })) as unknown as AsistenciasData;
+    } catch {
+      return {
+        asistencias: dummyResponse.fila,
+      };
+    }
   },
 
   async marcarAsistenciasVistas() {
-    return;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      await api.post("/asistencias/marcar-vistos", { sid_alumno: sidAlumno });
+    } catch {}
   },
 
   async getNotifications(): Promise<NotificationsState> {
-    return emptyNotifications;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      return (await api.get<NotificationsState>("/notificaciones", {
+        params: { sid_alumno: sidAlumno },
+      })) as unknown as NotificationsState;
+    } catch {
+      return emptyNotifications;
+    }
   },
 };

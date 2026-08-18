@@ -3,10 +3,24 @@ import React from "react";
 import { Image, Linking, Text, TouchableOpacity, View } from "react-native";
 
 import { ArchivoAdjunto, LinkItem, Mensaje } from "@/types/mensaje";
+import { formatDate, formatTime } from "@/utils/date";
+import HtmlMessageView from "./HtmlMessageView";
 
 const FILES_BASE_URL = "https://aplicacionescolar.com/sistema/archivos";
 const MESSAGE_ICON_BASE_URL =
   "https://aplicacionescolar.com/sistema/assets/img/Tipo mensaje";
+
+const isYes = (value?: string | null) =>
+  ["si", "sí", "1", "true"].includes(String(value || "").trim().toLowerCase());
+
+const isNo = (value?: string | null) =>
+  ["no", "0", "false"].includes(String(value || "").trim().toLowerCase());
+
+const formatRespuesta = (value?: string | null) => {
+  if (isYes(value)) return "Si";
+  if (isNo(value)) return "No";
+  return value || "";
+};
 
 interface MensajeDetailCardProps {
   mensaje: Mensaje;
@@ -42,6 +56,8 @@ export default function MensajeDetailCard({
   const mensajeLinks = links.filter(
     (link) => link.sid_mensaje === mensaje.id_mensaje && link.url
   );
+  const permiteRespuestaRapida = isYes(mensaje.permite_respuesta_rapida);
+  const tieneRespuesta = isYes(mensaje.respuesta_rapida) || isNo(mensaje.respuesta_rapida);
 
   return (
     <View className="mx-5 mb-4 overflow-hidden rounded-md bg-white">
@@ -70,19 +86,20 @@ export default function MensajeDetailCard({
           {mensaje.tipo_mensaje || "Mensaje"}
         </Text>
         <Text className="text-xs text-white" numberOfLines={1}>
-          {mensaje.fecha_envio} {mensaje.hora_envio}
+          {formatDate(mensaje.fecha_envio)} {formatTime(mensaje.hora_envio)}
         </Text>
       </View>
 
       <View className="px-4 py-4">
         <DetailRow label="Asunto" value={mensaje.asunto || "Sin asunto"} />
-        <DetailRow label="Mensaje" value={mensaje.mensaje || "Sin contenido"} />
+
+        <View className="mb-2">
+          <Text className="text-[13px] font-bold text-[#495057]">Mensaje</Text>
+          <HtmlMessageView html={mensaje.mensaje} />
+        </View>
 
         <View className="my-2 h-px bg-[#E9ECEF]" />
 
-        <DetailRow label="Fecha de envio" value={mensaje.fecha_envio} />
-        <DetailRow label="Hora de envio" value={mensaje.hora_envio} />
-        <DetailRow label="Destinatarios" value={mensaje.destinatarios} />
         <DetailRow label="Grupo" value={mensaje.nombre_grupo} />
         <DetailRow label="Periodo" value={mensaje.periodo} />
 
@@ -130,7 +147,13 @@ export default function MensajeDetailCard({
 
         <View className="mt-5 rounded-md bg-[#F1F3F5] p-3">
           <Text className="text-[13px] font-bold text-[#495057]">Respuesta rapida</Text>
-          {mensaje.respuesta_rapida ? (
+          {tieneRespuesta ? (
+            <View className="mt-3 self-start rounded-md bg-white px-3 py-2">
+              <Text className="text-[15px] font-bold text-[#0D6EFD]">
+                Respondiste: {formatRespuesta(mensaje.respuesta_rapida)}
+              </Text>
+            </View>
+          ) : permiteRespuestaRapida ? (
             <View className="mt-3 flex-row gap-3">
               <TouchableOpacity
                 activeOpacity={0.75}

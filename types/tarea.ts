@@ -12,5 +12,6 @@ export interface Tarea {
   estatus_tarea: TareaStatus;
   observacion_tarea: string;
   archivos_tarea: string[];
+  archivo_respuesta?: string;
   url_tarea: string[];
 }

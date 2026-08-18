@@ -1,9 +1,42 @@
+import api from "@/api/axiosConfig";
+import { SessionStorage } from "@/api/storage/sessionStorage";
 import { NotificationsState } from "@/types/mensaje";
-import { Tarea } from "@/types/tarea";
+import { Tarea, TareaStatus } from "@/types/tarea";
 
 export interface TareasData {
   tareas: Tarea[];
+  pagination?: {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
 }
+
+export interface TareaUploadFile {
+  uri: string;
+  name: string;
+  mimeType?: string;
+  size?: number;
+}
+
+interface SubirTareaResponse {
+  status: "success" | "error";
+  msg?: string;
+  tarea?: {
+    id_asignar_tarea: string;
+    estatus_tarea: TareaStatus;
+    archivo?: string;
+  };
+}
+
+const normalizeStatus = (status?: string | null): TareaStatus => {
+  const value = String(status || "").trim().toLowerCase();
+
+  if (value === "enviado" || value === "entregado") return "enviado";
+  if (value === "revisado") return "revisado";
+  if (value === "observacion") return "observacion";
+  return "pendiente";
+};
 
 const emptyNotifications: NotificationsState = {
   Mensajes: false,
@@ -12,7 +45,7 @@ const emptyNotifications: NotificationsState = {
   Calificaciones: false,
   Calendario: false,
   Asistencias: false,
-  Configuracion: false,
+  Perfil: false,
 };
 
 const dummyResponse = {
@@ -114,21 +147,73 @@ const dummyResponse = {
 };
 
 export const TareaService = {
-  async getTareas(): Promise<TareasData> {
-    return {
-      tareas: dummyResponse.fila,
-    };
+  async getTareas(limit = 20, offset = 0): Promise<TareasData> {
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      const response = (await api.get<TareasData>("/tareas", {
+        params: { sid_alumno: sidAlumno, limit, offset },
+      })) as unknown as TareasData;
+
+      return {
+        ...response,
+        tareas: (response.tareas || []).map((tarea) => ({
+          ...tarea,
+          estatus_tarea: normalizeStatus(tarea.estatus_tarea),
+        })),
+      };
+    } catch {
+      return {
+        tareas: dummyResponse.fila,
+      };
+    }
   },
 
-  async subirArchivo(_idAsignarTarea: string) {
-    return;
+  async subirArchivo(
+    idAsignarTarea: string,
+    archivo: TareaUploadFile
+  ): Promise<SubirTareaResponse> {
+    const { sidAlumno } = await SessionStorage.getSession();
+    const formData = new FormData();
+
+    formData.append("sid_alumno", sidAlumno || "");
+    formData.append("archivo", {
+      uri: archivo.uri,
+      name: archivo.name,
+      type: archivo.mimeType || "application/octet-stream",
+    } as unknown as Blob);
+
+    const response = (await api.post<SubirTareaResponse>(
+      `/tareas/${idAsignarTarea}/respuesta`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    )) as unknown as SubirTareaResponse;
+
+    if (response.status !== "success") {
+      throw new Error(response.msg || "No se pudo subir la tarea");
+    }
+
+    return response;
   },
 
   async marcarTareasVistas() {
-    return;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      await api.post("/tareas/marcar-vistos", { sid_alumno: sidAlumno });
+    } catch {}
   },
 
   async getNotifications(): Promise<NotificationsState> {
-    return emptyNotifications;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      return (await api.get<NotificationsState>("/notificaciones", {
+        params: { sid_alumno: sidAlumno },
+      })) as unknown as NotificationsState;
+    } catch {
+      return emptyNotifications;
+    }
   },
 };

@@ -1,3 +1,5 @@
+import api from "@/api/axiosConfig";
+import { SessionStorage } from "@/api/storage/sessionStorage";
 import { NotificationsState } from "@/types/mensaje";
 import { Seguimiento, SeguimientoAtributo } from "@/types/seguimiento";
 
@@ -13,7 +15,7 @@ const emptyNotifications: NotificationsState = {
   Calificaciones: false,
   Calendario: false,
   Asistencias: false,
-  Configuracion: false,
+  Perfil: false,
 };
 
 const dummyResponse = {
@@ -94,17 +96,34 @@ const dummyResponse = {
 
 export const SeguimientoService = {
   async getSeguimientos(): Promise<SeguimientosData> {
-    return {
-      seguimientos: dummyResponse.datos,
-      atributos: dummyResponse.atributos,
-    };
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      return (await api.get<SeguimientosData>("/seguimientos", {
+        params: { sid_alumno: sidAlumno },
+      })) as unknown as SeguimientosData;
+    } catch {
+      return {
+        seguimientos: dummyResponse.datos,
+        atributos: dummyResponse.atributos,
+      };
+    }
   },
 
   async marcarSeguimientosVistos() {
-    return;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      await api.post("/seguimientos/marcar-vistos", { sid_alumno: sidAlumno });
+    } catch {}
   },
 
   async getNotifications(): Promise<NotificationsState> {
-    return emptyNotifications;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      return (await api.get<NotificationsState>("/notificaciones", {
+        params: { sid_alumno: sidAlumno },
+      })) as unknown as NotificationsState;
+    } catch {
+      return emptyNotifications;
+    }
   },
 };

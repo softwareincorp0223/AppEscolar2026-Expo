@@ -1,12 +1,23 @@
 import { useState } from "react";
-import { Alert, FlatList, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import MensajeDetailCard from "@/components/mensajes/MensajeDetailCard";
 import MensajeListItem from "@/components/mensajes/MensajeListItem";
 import AppHeader from "@/components/navigation/AppHeader";
 import AppMenu from "@/components/navigation/AppMenu";
+import EmptyState from "@/components/ui/EmptyState";
+import ListSkeleton from "@/components/ui/ListSkeleton";
 import { useMensajes } from "@/hooks/useMensajes";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useSelectedAlumnoName } from "@/hooks/useSelectedAlumnoName";
 import { Mensaje } from "@/types/mensaje";
 
@@ -18,14 +29,29 @@ export default function Messages() {
     links,
     notifications,
     loadMensajes,
+    loadMoreMensajes,
+    loading,
+    loadingMore,
     responderMensaje,
   } = useMensajes();
   const alumnoName = useSelectedAlumnoName();
+  const { refreshing, onRefresh } = usePullToRefresh(loadMensajes);
+  const showSkeleton = loading && !refreshing && mensajes.length === 0;
 
   const handleRespond = async (idMensaje: string, respuesta: "si" | "no") => {
     try {
-      await responderMensaje(idMensaje, respuesta);
-      Alert.alert("Mensaje enviado", "Tu respuesta ha sido enviada correctamente.");
+      const response = await responderMensaje(idMensaje, respuesta);
+
+      setSelectedMensaje((current) =>
+        current?.id_mensaje === idMensaje
+          ? { ...current, respuesta_rapida: response.respuesta }
+          : current,
+      );
+
+      Alert.alert(
+        "Mensaje enviado",
+        "Tu respuesta ha sido enviada correctamente.",
+      );
     } catch {
       Alert.alert("Error", "No se pudo enviar la respuesta.");
     }
@@ -44,8 +70,20 @@ export default function Messages() {
       <AppHeader alumno={alumnoName} />
 
       <View className="flex-[7] bg-[#F7F3F9]">
-        {selectedMensaje ? (
-          <ScrollView className="flex-1 pt-2.5">
+        {showSkeleton ? (
+          <ListSkeleton count={6} avatar />
+        ) : selectedMensaje ? (
+          <ScrollView
+            className="flex-1 pt-2.5"
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#0D6EFD"
+                colors={["#0D6EFD"]}
+              />
+            }
+          >
             <MensajeDetailCard
               mensaje={selectedMensaje}
               archivosAdjuntos={archivosAdjuntos}
@@ -59,10 +97,28 @@ export default function Messages() {
             data={mensajes}
             keyExtractor={(mensaje) => mensaje.id_mensaje}
             ListHeaderComponent={renderListHeader}
+            ListFooterComponent={
+              loadingMore ? (
+                <ActivityIndicator className="py-4" color="#0D6EFD" />
+              ) : null
+            }
+            ListEmptyComponent={
+              <EmptyState message="No se encontraron mensajes." />
+            }
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#0D6EFD"
+                colors={["#0D6EFD"]}
+              />
+            }
             contentContainerStyle={{ paddingTop: 10, paddingBottom: 12 }}
             initialNumToRender={12}
             maxToRenderPerBatch={10}
             windowSize={7}
+            onEndReached={loadMoreMensajes}
+            onEndReachedThreshold={0.4}
             renderItem={({ item }) => (
               <MensajeListItem mensaje={item} onPress={setSelectedMensaje} />
             )}
@@ -72,7 +128,7 @@ export default function Messages() {
         <AppMenu
           currentScreen="Mensajes"
           notifications={notifications}
-          onReload={loadMensajes}
+          onReload={onRefresh}
         />
       </View>
     </SafeAreaView>

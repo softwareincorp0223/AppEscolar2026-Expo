@@ -1,18 +1,31 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Alert, ImageBackground, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  ImageBackground,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import AppMenu from "@/components/navigation/AppMenu";
 import PerfilSummary from "@/components/perfil/PerfilSummary";
 import SchoolInfoCard from "@/components/perfil/SchoolInfoCard";
+import EmptyState from "@/components/ui/EmptyState";
+import ListSkeleton from "@/components/ui/ListSkeleton";
 import { usePerfil } from "@/hooks/usePerfil";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 const HEADER_BACKGROUND =
-  "https://aplicacionescolar.com/webview/public/assets/img/fondo-config.png";
+  "https://ik.imagekit.io/2fqivufug/tipo_mensaje/fondo-config.png";
 
 export default function Profile() {
-  const { perfil, notifications, loadPerfil, logout } = usePerfil();
+  const { perfil, notifications, loading, loadPerfil, logout } = usePerfil();
+  const { refreshing, onRefresh } = usePullToRefresh(loadPerfil);
+  const showSkeleton = loading && !refreshing && !perfil;
 
   const handleLogout = async () => {
     await logout();
@@ -23,7 +36,17 @@ export default function Profile() {
   return (
     <SafeAreaView className="flex-1 bg-[#0D6EFD]">
       <View className="flex-[7] bg-[#F7F3F9]">
-        <ScrollView className="flex-1">
+        <ScrollView
+          className="flex-1"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#0D6EFD"
+              colors={["#0D6EFD"]}
+            />
+          }
+        >
           <ImageBackground
             source={{ uri: HEADER_BACKGROUND }}
             resizeMode="cover"
@@ -42,7 +65,9 @@ export default function Profile() {
             </Text>
           </ImageBackground>
 
-          {perfil && (
+          {showSkeleton ? (
+            <ListSkeleton count={3} avatar fill={false} />
+          ) : perfil ? (
             <>
               <PerfilSummary perfil={perfil} />
               <SchoolInfoCard instituto={perfil.instituto} />
@@ -58,13 +83,15 @@ export default function Profile() {
                 </Text>
               </TouchableOpacity>
             </>
+          ) : (
+            <EmptyState message="No se encontro informacion del perfil." />
           )}
         </ScrollView>
 
         <AppMenu
-          currentScreen="Configuracion"
+          currentScreen="Perfil"
           notifications={notifications}
-          onReload={loadPerfil}
+          onReload={onRefresh}
         />
       </View>
     </SafeAreaView>

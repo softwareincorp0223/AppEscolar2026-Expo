@@ -11,20 +11,27 @@ const initialNotifications: NotificationsState = {
   Calificaciones: false,
   Calendario: false,
   Asistencias: false,
-  Configuracion: false,
+  Perfil: false,
 };
 
 export function usePerfil() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [notifications, setNotifications] =
     useState<NotificationsState>(initialNotifications);
+  const [loading, setLoading] = useState(true);
 
   const loadPerfil = useCallback(async () => {
-    const perfilData = await PerfilService.getPerfil();
-    const notificationsData = await PerfilService.getNotifications();
+    setLoading(true);
 
-    setPerfil(perfilData.perfil);
-    setNotifications(notificationsData);
+    try {
+      const perfilData = await PerfilService.getPerfil();
+      const notificationsData = await PerfilService.getNotifications();
+
+      setPerfil(perfilData.perfil);
+      setNotifications(notificationsData);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const logout = useCallback(async () => {
@@ -38,6 +45,7 @@ export function usePerfil() {
   return {
     perfil,
     notifications,
+    loading,
     loadPerfil,
     logout,
   };

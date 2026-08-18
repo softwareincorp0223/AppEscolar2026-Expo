@@ -18,21 +18,28 @@ const initialNotifications: NotificationsState = {
   Calificaciones: false,
   Calendario: false,
   Asistencias: false,
-  Configuracion: false,
+  Perfil: false,
 };
 
 export function useSeguimientos() {
   const [data, setData] = useState<SeguimientosData>(initialData);
   const [notifications, setNotifications] =
     useState<NotificationsState>(initialNotifications);
+  const [loading, setLoading] = useState(true);
 
   const loadSeguimientos = useCallback(async () => {
-    const seguimientosData = await SeguimientoService.getSeguimientos();
-    const notificationsData = await SeguimientoService.getNotifications();
+    setLoading(true);
 
-    setData(seguimientosData);
-    setNotifications(notificationsData);
-    await SeguimientoService.marcarSeguimientosVistos();
+    try {
+      const seguimientosData = await SeguimientoService.getSeguimientos();
+      await SeguimientoService.marcarSeguimientosVistos();
+      const notificationsData = await SeguimientoService.getNotifications();
+
+      setData(seguimientosData);
+      setNotifications(notificationsData);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -42,6 +49,7 @@ export function useSeguimientos() {
   return {
     ...data,
     notifications,
+    loading,
     loadSeguimientos,
   };
 }

@@ -1,9 +1,22 @@
 import { ArchivoAdjunto, LinkItem, Mensaje, NotificationsState } from "@/types/mensaje";
+import api from "@/api/axiosConfig";
+import { SessionStorage } from "@/api/storage/sessionStorage";
 
 export interface MensajesData {
   mensajes: Mensaje[];
   archivosAdjuntos: ArchivoAdjunto[];
   links: LinkItem[];
+  pagination?: {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+}
+
+interface ResponderMensajeResponse {
+  status: "success" | "error";
+  respuesta: "si" | "no";
+  msg?: string;
 }
 
 const emptyNotifications: NotificationsState = {
@@ -13,7 +26,7 @@ const emptyNotifications: NotificationsState = {
   Calificaciones: false,
   Calendario: false,
   Asistencias: false,
-  Configuracion: false,
+  Perfil: false,
 };
 
 const dummyResponse = {
@@ -102,23 +115,58 @@ const dummyResponse = {
 };
 
 export const MensajeService = {
-  async getMensajes(): Promise<MensajesData> {
-    return {
-      mensajes: dummyResponse.datos,
-      archivosAdjuntos: dummyResponse.datos_archivo,
-      links: dummyResponse.datos_url,
-    };
+  async getMensajes(limit = 50, offset = 0): Promise<MensajesData> {
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      const response = (await api.get<MensajesData>("/mensajes", {
+        params: { sid_alumno: sidAlumno, limit, offset },
+      })) as unknown as MensajesData;
+
+      return response;
+    } catch {
+      return {
+        mensajes: dummyResponse.datos,
+        archivosAdjuntos: dummyResponse.datos_archivo,
+        links: dummyResponse.datos_url,
+      };
+    }
   },
 
-  async responderMensaje(_idMensaje: string, _respuesta: "si" | "no") {
-    return;
+  async responderMensaje(
+    idMensaje: string,
+    respuesta: "si" | "no"
+  ): Promise<ResponderMensajeResponse> {
+    const { sidAlumno } = await SessionStorage.getSession();
+    const response = (await api.post<ResponderMensajeResponse>(
+      `/mensajes/${idMensaje}/respuesta`,
+      {
+        sid_alumno: sidAlumno,
+        respuesta,
+      }
+    )) as unknown as ResponderMensajeResponse;
+
+    if (response.status !== "success") {
+      throw new Error(response.msg || "No se pudo enviar la respuesta");
+    }
+
+    return response;
   },
 
   async marcarMensajesVistos() {
-    return;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      await api.post("/mensajes/marcar-vistos", { sid_alumno: sidAlumno });
+    } catch {}
   },
 
   async getNotifications(): Promise<NotificationsState> {
-    return emptyNotifications;
+    try {
+      const { sidAlumno } = await SessionStorage.getSession();
+      return (await api.get<NotificationsState>("/notificaciones", {
+        params: { sid_alumno: sidAlumno },
+      })) as unknown as NotificationsState;
+    } catch {
+      return emptyNotifications;
+    }
   },
 };

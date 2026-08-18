@@ -6,39 +6,53 @@ import { Alumno } from "@/types/alumno";
 
 export function useAlumnos() {
   const [alumnos, setAlumnos] = useState<Alumno[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadAlumnos = useCallback(async () => {
+    setLoading(true);
+
     try {
-      const { id } = await SessionStorage.getSession();
+      const { idPadre } = await SessionStorage.getSession();
 
-      if (!id) return;
+      if (!idPadre) {
+        setAlumnos([]);
+        return;
+      }
 
-      const alumnosByPadre = await AlumnoService.getAlumnosByPadre(id);
+      const alumnosByPadre = await AlumnoService.getAlumnosByPadre(idPadre);
       setAlumnos(alumnosByPadre);
     } catch (error) {
       console.error("Error al cargar alumnos:", error);
+      setAlumnos([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   const selectAlumno = useCallback(
     async (alumno: Alumno) => {
       try {
-        await SessionStorage.saveSelectedAlumno(
-          alumno.id_alumno,
-          alumno.sid_instituto,
-          `${alumno.nombre} ${alumno.apellido}`.trim()
-        );
+        const { idPadre } = await SessionStorage.getSession();
 
-        const apiData = await AlumnoService.seleccionarAlumno(alumno.id_alumno);
+        const apiData = await AlumnoService.seleccionarAlumno(
+          alumno.id_alumno,
+          idPadre
+        );
 
         if (apiData.status !== "success") {
           console.warn("No se pudo seleccionar al alumno:", apiData);
           return false;
         }
 
+        await SessionStorage.saveSelectedAlumno(
+          alumno.id_alumno,
+          alumno.sid_instituto,
+          `${alumno.nombre} ${alumno.apellido}`.trim()
+        );
+
         await SessionStorage.updateGrupoAndPadre(
           apiData.sid_grupo,
-          apiData.id_padre
+          apiData.id_padre ?? idPadre
         );
 
         return true;
@@ -56,6 +70,7 @@ export function useAlumnos() {
 
   return {
     alumnos,
+    loading,
     reloadAlumnos: loadAlumnos,
     selectAlumno,
   };

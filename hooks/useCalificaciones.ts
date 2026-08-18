@@ -18,7 +18,7 @@ const initialNotifications: NotificationsState = {
   Calificaciones: false,
   Calendario: false,
   Asistencias: false,
-  Configuracion: false,
+  Perfil: false,
 };
 
 export function useCalificaciones() {
@@ -27,15 +27,22 @@ export function useCalificaciones() {
   );
   const [notifications, setNotifications] =
     useState<NotificationsState>(initialNotifications);
+  const [loading, setLoading] = useState(true);
 
   const loadCalificaciones = useCallback(async () => {
-    const calificacionesData =
-      await CalificacionService.getCalificaciones();
-    const notificationsData = await CalificacionService.getNotifications();
+    setLoading(true);
 
-    setCalificaciones(calificacionesData.calificaciones);
-    setNotifications(notificationsData);
-    await CalificacionService.marcarCalificacionesVistas();
+    try {
+      const calificacionesData =
+        await CalificacionService.getCalificaciones();
+      await CalificacionService.marcarCalificacionesVistas();
+      const notificationsData = await CalificacionService.getNotifications();
+
+      setCalificaciones(calificacionesData.calificaciones);
+      setNotifications(notificationsData);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const getReporteBoletaUrl = useCallback(async (idEvaluacion: string) => {
@@ -49,6 +56,7 @@ export function useCalificaciones() {
   return {
     calificaciones,
     notifications,
+    loading,
     loadCalificaciones,
     getReporteBoletaUrl,
   };

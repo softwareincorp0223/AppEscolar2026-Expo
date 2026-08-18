@@ -3,6 +3,7 @@ import React from "react";
 import { Image, Text, View } from "react-native";
 
 import { Asistencia } from "@/types/asistencia";
+import { formatDate, formatTime } from "@/utils/date";
 
 const DEFAULT_AVATAR =
   "https://static.vecteezy.com/system/resources/thumbnails/005/545/335/small/user-sign-icon-person-symbol-human-avatar-isolated-on-white-backogrund-vector.jpg";
@@ -18,8 +19,10 @@ function getAlumnoImageUri(foto: Asistencia["foto"]) {
 
 export default function AsistenciaCard({
   asistencia,
+  highlighted = false,
 }: {
   asistencia: Asistencia;
+  highlighted?: boolean;
 }) {
   const isSalida = asistencia.tipo === "salida";
   const color = isSalida ? "#DC3545" : "green";
@@ -28,7 +31,10 @@ export default function AsistenciaCard({
   const textClass = isSalida ? "text-red-600" : "text-green-600";
 
   return (
-    <View className="mx-5 mb-5 bg-white shadow" style={{ elevation: 4 }}>
+    <View
+      className={`mx-5 mb-5 bg-white shadow ${highlighted ? "border-l-4 border-[#0D6EFD]" : ""}`}
+      style={{ elevation: 4 }}
+    >
       <View className="flex-row">
         <View className="p-5">
           <Image
@@ -42,7 +48,7 @@ export default function AsistenciaCard({
             {asistencia.nombre} {asistencia.apellido} - {asistencia.matricula}
           </Text>
           <Text className="mt-1 font-bold text-[#212529]">
-            {asistencia.fecha_ingreso} {asistencia.hora}
+            {formatDate(asistencia.fecha_ingreso)} {formatTime(asistencia.hora)}
           </Text>
 
           <View

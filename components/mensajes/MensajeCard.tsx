@@ -3,6 +3,7 @@ import React from "react";
 import { Image, Linking, Text, TouchableOpacity, View } from "react-native";
 
 import { ArchivoAdjunto, LinkItem, Mensaje } from "@/types/mensaje";
+import { formatDate, formatTime } from "@/utils/date";
 
 const FILES_BASE_URL = "https://aplicacionescolar.com/sistema/archivos";
 const MESSAGE_ICON_BASE_URL =
@@ -47,7 +48,7 @@ export default function MensajeCard({
             {mensaje.tipo_mensaje}
           </Text>
           <Text className="text-xs text-white" numberOfLines={1}>
-            {mensaje.fecha_envio} {mensaje.hora_envio}
+            {formatDate(mensaje.fecha_envio)} {formatTime(mensaje.hora_envio)}
           </Text>
         </View>
       </View>
