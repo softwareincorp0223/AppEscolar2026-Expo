@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const phpApi = axios.create({
-  baseURL: "http://192.168.100.11/apiAppEscolarv2/",
+  baseURL: "https://aplicacionescolar.com/apiAppEscolarv2/",
+  //baseURL: "http://192.168.100.11/apiAppEscolarv2/",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

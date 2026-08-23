@@ -7,7 +7,7 @@ import {
 } from "@/utils/pushNotifications";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -22,6 +22,7 @@ const LoginNativa = () => {
   const [scanSuccessful, setScanSuccessful] = useState(false);
   const [loading, setLoading] = useState(true);
   const [permission, requestPermission] = useCameraPermissions();
+  const scanInProgressRef = useRef(false);
 
   const windowWidth = Dimensions.get("window").width;
 
@@ -50,21 +51,21 @@ const LoginNativa = () => {
     idPadre: string,
     sidInstituto: string
   ) => {
-    await SessionStorage.saveSession({
+    await SessionStorage.replaceSession({
       id: idPadre,
       idPadre,
       sidInstituto,
     });
 
-    await registerParentDeviceForPushNotifications(idPadre);
+    void registerParentDeviceForPushNotifications(idPadre);
 
     router.replace("/pages/details" as never);
   };
 
   const handleBarCodeRead = async (scanResult: { data?: string }) => {
-    console.log(scanResult.data);
-
-    if (scanSuccessful) return;
+    if (scanSuccessful || scanInProgressRef.current) {
+      return;
+    }
 
     const codigoQR = scanResult?.data?.trim();
 
@@ -72,11 +73,15 @@ const LoginNativa = () => {
       return;
     }
 
+    console.log("[LOGIN][QR_TRIMMED]", codigoQR);
+
+    scanInProgressRef.current = true;
     setScanSuccessful(true);
 
     try {
       const response = await loginWithQR(codigoQR);
 
+      console.log("[LOGIN][ID_PADRE_FROM_QR]", response.id_padre);
 
       if (!response.id_padre || !response.sid_instituto) {
         throw new Error("La respuesta del servidor está incompleta");
@@ -95,7 +100,10 @@ const LoginNativa = () => {
       Alert.alert("Código QR inválido", message, [
         {
           text: "Intentar nuevamente",
-          onPress: () => setScanSuccessful(false),
+          onPress: () => {
+            scanInProgressRef.current = false;
+            setScanSuccessful(false);
+          },
         },
       ]);
     }
@@ -186,7 +194,10 @@ const LoginNativa = () => {
 
         {scanSuccessful && (
           <TouchableOpacity
-            onPress={() => setScanSuccessful(false)}
+            onPress={() => {
+              scanInProgressRef.current = false;
+              setScanSuccessful(false);
+            }}
             className="bg-white/20 mt-4 py-2 px-6 rounded-lg"
           >
             <Text className="text-white text-sm">

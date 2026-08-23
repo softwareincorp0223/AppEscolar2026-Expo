@@ -11,10 +11,14 @@ const MESSAGE_ICON_BASE_URL =
   "https://aplicacionescolar.com/sistema/assets/img/Tipo mensaje";
 
 const isYes = (value?: string | null) =>
-  ["si", "sí", "1", "true"].includes(String(value || "").trim().toLowerCase());
+  ["si", "sí", "1", "true", "respuesta_si", "respondio_si"].includes(
+    String(value || "").trim().toLowerCase()
+  );
 
 const isNo = (value?: string | null) =>
-  ["no", "0", "false"].includes(String(value || "").trim().toLowerCase());
+  ["no", "0", "false", "respuesta_no", "respondio_no"].includes(
+    String(value || "").trim().toLowerCase()
+  );
 
 const formatRespuesta = (value?: string | null) => {
   if (isYes(value)) return "Si";

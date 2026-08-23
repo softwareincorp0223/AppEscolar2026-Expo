@@ -1,27 +1,30 @@
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 
 import { SessionStorage } from "@/api/storage/sessionStorage";
 
 export function useSelectedAlumnoName() {
   const [name, setName] = useState("Alumno");
 
-  useEffect(() => {
-    let mounted = true;
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
 
-    const loadName = async () => {
-      const session = await SessionStorage.getSession();
+      const loadName = async () => {
+        const session = await SessionStorage.getSession();
 
-      if (mounted && session.selectedAlumnoName) {
-        setName(session.selectedAlumnoName);
-      }
-    };
+        if (mounted) {
+          setName(session.selectedAlumnoName || "Alumno");
+        }
+      };
 
-    loadName();
+      loadName();
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+      return () => {
+        mounted = false;
+      };
+    }, [])
+  );
 
   return name;
 }

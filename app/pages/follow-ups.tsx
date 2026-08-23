@@ -9,6 +9,7 @@ import ListSkeleton from "@/components/ui/ListSkeleton";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useSeguimientos } from "@/hooks/useSeguimientos";
 import { useSelectedAlumnoName } from "@/hooks/useSelectedAlumnoName";
+import { useEffect } from "react";
 
 export default function FollowUps() {
   const { seguimientos, atributos, notifications, loading, loadSeguimientos } =
@@ -16,6 +17,12 @@ export default function FollowUps() {
   const alumnoName = useSelectedAlumnoName();
   const { refreshing, onRefresh } = usePullToRefresh(loadSeguimientos);
   const showSkeleton = loading && !refreshing && seguimientos.length === 0;
+
+  useEffect(() => {
+    console.log( seguimientos );
+    console.log( atributos );
+  }, []);
+  
 
   return (
     <SafeAreaView className="flex-1 bg-[#0D6EFD]">

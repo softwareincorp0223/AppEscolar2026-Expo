@@ -1,4 +1,4 @@
-import api from "@/api/axiosConfig";
+import api, { MOBILE_API_BASE_URL } from "@/api/axiosConfig";
 import { SessionStorage } from "@/api/storage/sessionStorage";
 import { Calificacion } from "@/types/calificacion";
 import { NotificationsState } from "@/types/mensaje";
@@ -23,6 +23,7 @@ const dummyResponse = {
   fila: [
     {
       id_evaluacion: "eval-2026-01",
+      id_alumno: "alumno-demo-01",
       foto: 0,
       ciclo: "2025-2026",
       nombre_nivel: "Preescolar",
@@ -31,6 +32,7 @@ const dummyResponse = {
     },
     {
       id_evaluacion: "eval-2026-02",
+      id_alumno: "alumno-demo-02",
       foto: "El archivo no se pudo subir",
       ciclo: "2025-2026",
       nombre_nivel: "Preescolar",
@@ -54,16 +56,11 @@ export const CalificacionService = {
     }
   },
 
-  async getReporteBoletaUrl(idEvaluacion: string): Promise<string> {
-    try {
-      const response = (await api.get<{ url: string }>(
-        `/calificaciones/${idEvaluacion}/boleta`
-      )) as unknown as { url: string };
-
-      return response.url;
-    } catch {
-      return `https://aplicacionescolar.com/sistema/php/pdf/reporte_boleta_dummy_${idEvaluacion}.pdf`;
-    }
+  getReporteBoletaUrl(idAlumno: string, ciclo?: string): string {
+    const query = ciclo ? `?ciclo=${encodeURIComponent(ciclo)}` : "";
+    return `${MOBILE_API_BASE_URL}/calificaciones/alumno/${encodeURIComponent(
+      idAlumno
+    )}/boleta${query}`;
   },
 
   async marcarCalificacionesVistas() {

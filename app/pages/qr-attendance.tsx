@@ -1,6 +1,9 @@
-import { registerAttendanceByQR } from "@/api/services/attendanceScannerService";
+import {
+  getStudentByAttendanceQR,
+  registerResolvedAttendanceByQR,
+} from "@/api/services/attendanceScannerService";
 import { SchoolSessionStorage } from "@/api/storage/schoolSessionStorage";
-import AutoDismissModal from "@/components/ui/AutoDismissModal";
+import { AsistenciaTipo } from "@/types/asistencia";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -12,22 +15,26 @@ import {
   View,
 } from "react-native";
 
+const QR_READ_DEBOUNCE_MS = 900;
+const STUDENT_EXIT_COOLDOWN_MS = 30 * 1000;
+const FEEDBACK_DURATION_MS = 2500;
+
 type AttendanceFeedback = {
   title: string;
   description: string;
-  showCloseButton?: boolean;
-  duration?: number;
+  variant: "success" | "warning" | "error";
 };
 
 const QRAttendance = () => {
-  const [scanSuccessful, setScanSuccessful] = useState(false);
+  const [scanInProgress, setScanInProgress] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sidUsuario, setSidUsuario] = useState("");
   const [sidInstituto, setSidInstituto] = useState<string | null | undefined>();
   const [feedback, setFeedback] = useState<AttendanceFeedback | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const isProcessingScanRef = useRef(false);
-  const lastScannedCodeRef = useRef<string | null>(null);
+  const qrReadDebounceRef = useRef<Record<string, number>>({});
+  const studentCooldownRef = useRef<Record<string, number>>({});
 
   const windowWidth = Dimensions.get("window").width;
 
@@ -48,49 +55,110 @@ const QRAttendance = () => {
     loadSession();
   }, []);
 
-  const closeFeedback = () => {
-    setFeedback(null);
-    setScanSuccessful(false);
-  };
+  useEffect(() => {
+    if (!feedback) return;
+
+    const timer = setTimeout(() => {
+      setFeedback(null);
+    }, FEEDBACK_DURATION_MS);
+
+    return () => clearTimeout(timer);
+  }, [feedback]);
 
   const handleLogout = async () => {
     await SchoolSessionStorage.clearSession();
     router.replace("/pages/login-attendance" as never);
   };
 
-  const handleBarCodeRead = async (scanResult: { data?: string }) => {
-    if (scanSuccessful || isProcessingScanRef.current) return;
+  const getStudentName = (alumno?: { nombre?: string; apellido?: string }) =>
+    [alumno?.nombre, alumno?.apellido].filter(Boolean).join(" ");
 
-    console.log("scanResult.data");
-    console.log(scanResult.data);
-    
+  const getAttendanceLabel = (tipo?: AsistenciaTipo) => {
+    if (tipo === "entrada") return "Entrada registrada";
+    if (tipo === "salida") return "Salida registrada";
+    return "Asistencia registrada";
+  };
+
+  const isQrDebounced = (codigoQR: string) => {
+    const now = Date.now();
+    const lastReadAt = qrReadDebounceRef.current[codigoQR] ?? 0;
+
+    if (now - lastReadAt < QR_READ_DEBOUNCE_MS) {
+      return true;
+    }
+
+    qrReadDebounceRef.current[codigoQR] = now;
+    return false;
+  };
+
+  const isStudentInCooldown = (studentId: string) => {
+    const now = Date.now();
+    const blockedUntil = studentCooldownRef.current[studentId] ?? 0;
+
+    if (blockedUntil <= now) {
+      delete studentCooldownRef.current[studentId];
+      return false;
+    }
+
+    return true;
+  };
+
+  const markStudentCooldown = (studentId: string) => {
+    studentCooldownRef.current[studentId] =
+      Date.now() + STUDENT_EXIT_COOLDOWN_MS;
+  };
+
+  const handleBarCodeRead = async (scanResult: { data?: string }) => {
+    if (isProcessingScanRef.current) return;
 
     const codigoQR = scanResult?.data?.trim();
     if (!codigoQR || !sidUsuario) return;
-    if (codigoQR === lastScannedCodeRef.current) return;
+    if (isQrDebounced(codigoQR)) return;
 
     isProcessingScanRef.current = true;
-    lastScannedCodeRef.current = codigoQR;
-    setScanSuccessful(true);
+    setScanInProgress(true);
 
     try {
-      const response = await registerAttendanceByQR({
-        codigoQR,
+      const alumno = await getStudentByAttendanceQR(codigoQR);
+      const nombre = getStudentName(alumno);
+      const matricula = alumno.matricula ? `Matricula: ${alumno.matricula}` : "";
+
+      if (isStudentInCooldown(alumno.id_alumno)) {
+        setFeedback({
+          title: "Salida aun no disponible",
+          description: [
+            nombre || "Alumno registrado",
+            "Espera un momento antes de registrar la salida.",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+          variant: "warning",
+        });
+
+        return;
+      }
+
+      const response = await registerResolvedAttendanceByQR({
+        alumno,
         sidUsuario,
         sidInstituto,
       });
 
-      const alumno = response.alumno;
-      const nombre = [alumno?.nombre, alumno?.apellido].filter(Boolean).join(" ");
-      const matricula = alumno?.matricula ? `Matricula: ${alumno.matricula}` : "";
+      const responseAlumno = response.alumno ?? alumno;
+
+      if (!response.tipo || response.tipo === "entrada") {
+        markStudentCooldown(responseAlumno.id_alumno);
+      }
 
       setFeedback({
-        title: "Asistencia registrada",
-        description: [nombre || "Alumno registrado", matricula]
+        title: getAttendanceLabel(response.tipo),
+        description: [
+          getStudentName(responseAlumno) || nombre || "Alumno registrado",
+          matricula,
+        ]
           .filter(Boolean)
           .join("\n"),
-        showCloseButton: false,
-        duration: 2000,
+        variant: "success",
       });
     } catch (error) {
       const message =
@@ -101,11 +169,11 @@ const QRAttendance = () => {
       setFeedback({
         title: "QR invalido",
         description: message,
-        showCloseButton: true,
-        duration: 2000,
+        variant: "error",
       });
     } finally {
       isProcessingScanRef.current = false;
+      setScanInProgress(false);
     }
   };
 
@@ -159,15 +227,35 @@ const QRAttendance = () => {
           barcodeScannerSettings={{
             barcodeTypes: ["qr"],
           }}
-          onBarcodeScanned={scanSuccessful ? undefined : handleBarCodeRead}
+          onBarcodeScanned={handleBarCodeRead}
         />
 
-        {scanSuccessful && !feedback && (
+        {scanInProgress && (
           <View className="absolute inset-0 bg-black/40 justify-center items-center">
             <ActivityIndicator size="large" color="#ffffff" />
 
             <Text className="text-white font-bold mt-3">
               Registrando asistencia...
+            </Text>
+          </View>
+        )}
+
+        {feedback && (
+          <View
+            className={`absolute left-5 right-5 top-5 rounded-xl px-5 py-4 shadow-lg ${
+              feedback.variant === "success"
+                ? "bg-emerald-600"
+                : feedback.variant === "warning"
+                  ? "bg-amber-500"
+                  : "bg-red-600"
+            }`}
+          >
+            <Text className="text-white text-lg font-bold text-center">
+              {feedback.title}
+            </Text>
+
+            <Text className="text-white text-base text-center mt-1">
+              {feedback.description}
             </Text>
           </View>
         )}
@@ -183,14 +271,6 @@ const QRAttendance = () => {
         </TouchableOpacity>
       </View>
 
-      <AutoDismissModal
-        visible={!!feedback}
-        title={feedback?.title || ""}
-        description={feedback?.description}
-        duration={feedback?.duration}
-        showCloseButton={feedback?.showCloseButton}
-        onClose={closeFeedback}
-      />
     </View>
   );
 };

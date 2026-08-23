@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const systemApi = axios.create({
-  baseURL: "http://192.168.100.11:4000/api",
+  baseURL: "https://aplicacionescolar.com/sistema/api",
+  //baseURL: "http://192.168.100.11:4000/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

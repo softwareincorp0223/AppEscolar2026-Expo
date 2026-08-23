@@ -62,6 +62,11 @@ export const SessionStorage = {
     await persistSession();
   },
 
+  async replaceSession(session: Session) {
+    currentSession = { ...session };
+    await persistSession();
+  },
+
   async saveSelectedAlumno(
     sidAlumno: string,
     sidInstituto: string,

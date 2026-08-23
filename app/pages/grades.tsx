@@ -29,9 +29,9 @@ export default function Grades() {
   const { refreshing, onRefresh } = usePullToRefresh(loadCalificaciones);
   const showSkeleton = loading && !refreshing && calificaciones.length === 0;
 
-  const handleDownloadReport = async (idEvaluacion: string) => {
+  const handleDownloadReport = async (idAlumno: string, ciclo?: string) => {
     try {
-      const url = await getReporteBoletaUrl(idEvaluacion);
+      const url = getReporteBoletaUrl(idAlumno, ciclo);
       await Linking.openURL(url);
     } catch {
       Alert.alert("Error", "No se pudo abrir el reporte PDF.");

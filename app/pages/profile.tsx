@@ -18,6 +18,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import ListSkeleton from "@/components/ui/ListSkeleton";
 import { usePerfil } from "@/hooks/usePerfil";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { navigateToParentLogin } from "@/utils/navigation";
 
 const HEADER_BACKGROUND =
   "https://ik.imagekit.io/2fqivufug/tipo_mensaje/fondo-config.png";
@@ -30,7 +31,7 @@ export default function Profile() {
   const handleLogout = async () => {
     await logout();
     Alert.alert("Sesion cerrada", "Sesion cerrada correctamente.");
-    router.replace("/pages/login" as never);
+    navigateToParentLogin();
   };
 
   return (

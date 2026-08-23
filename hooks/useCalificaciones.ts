@@ -45,8 +45,8 @@ export function useCalificaciones() {
     }
   }, []);
 
-  const getReporteBoletaUrl = useCallback(async (idEvaluacion: string) => {
-    return CalificacionService.getReporteBoletaUrl(idEvaluacion);
+  const getReporteBoletaUrl = useCallback((idAlumno: string, ciclo?: string) => {
+    return CalificacionService.getReporteBoletaUrl(idAlumno, ciclo);
   }, []);
 
   useEffect(() => {

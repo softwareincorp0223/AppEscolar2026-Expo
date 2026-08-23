@@ -7,8 +7,6 @@ import {
   SeguimientoAtributo,
 } from "@/types/seguimiento";
 
-const STICKER_BASE_URL = "https://aplicacionescolar.com/sistema/assets/img/sticker";
-
 interface SeguimientoCardProps {
   seguimiento: Seguimiento;
   atributos: SeguimientoAtributo[];
@@ -34,8 +32,8 @@ export default function SeguimientoCard({
   return (
     <View className="mx-5 mb-4 overflow-hidden rounded-md bg-white shadow" style={{ elevation: 3 }}>
       <View className="flex-row items-center border-b border-[#E9ECEF] px-4 py-4">
-        <View className="h-[58px] w-[58px] items-center justify-center rounded-md bg-[#E8F1FF]">
-          <FontAwesome name="calendar-o" size={24} color="#0D6EFD" />
+        <View className="h-[28px] w-[28px] items-center justify-center rounded-md bg-[#E8F1FF]">
+          <FontAwesome name="calendar-o" size={18} color="#0D6EFD" />
         </View>
 
         <View className="ml-3 flex-1">
@@ -45,10 +43,6 @@ export default function SeguimientoCard({
           <Text className="mt-0.5 text-sm text-[#6C757D]" numberOfLines={1}>
             Seguimiento diario
           </Text>
-        </View>
-
-        <View className="h-[58px] w-[58px] items-center justify-center rounded-md bg-[#E8F1FF]">
-          <FontAwesome name="clipboard" size={24} color="#0D6EFD" />
         </View>
       </View>
 
@@ -63,7 +57,7 @@ export default function SeguimientoCard({
                 <View className="h-12 w-12 items-center justify-center rounded-md bg-[#F1F6FF]">
                   {atributo.icono ? (
                     <Image
-                      source={{ uri: `${STICKER_BASE_URL}/${atributo.icono}` }}
+                      source={{ uri: `${atributo.icono}` }}
                       className="h-9 w-9"
                       resizeMode="contain"
                     />

@@ -6,8 +6,6 @@ import { Tarea, TareaStatus } from "@/types/tarea";
 import { formatDateTime } from "@/utils/date";
 import { htmlToText } from "@/utils/html";
 
-const FILES_BASE_URL = "https://aplicacionescolar.com/sistema/archivos";
-
 interface TareaCardProps {
   tarea: Tarea;
   uploading?: boolean;
@@ -84,7 +82,7 @@ export default function TareaCard({
           {archivos.map((archivo) => (
             <TouchableOpacity
               key={`${tarea.id_tareas}-${archivo}`}
-              onPress={() => Linking.openURL(`${FILES_BASE_URL}/${archivo}`)}
+              onPress={() => Linking.openURL(`${archivo}`)}
             >
               <Text className="mt-1 text-[#6C757D] underline">{archivo}</Text>
             </TouchableOpacity>

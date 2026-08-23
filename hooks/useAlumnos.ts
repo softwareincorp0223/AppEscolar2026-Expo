@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { AlumnoService } from "@/api/services/alumnoService";
 import { SessionStorage } from "@/api/storage/sessionStorage";
@@ -12,7 +12,8 @@ export function useAlumnos() {
     setLoading(true);
 
     try {
-      const { idPadre } = await SessionStorage.getSession();
+      const session = await SessionStorage.getSession();
+      const { idPadre } = session;
 
       if (!idPadre) {
         setAlumnos([]);
@@ -63,10 +64,6 @@ export function useAlumnos() {
     },
     []
   );
-
-  useEffect(() => {
-    loadAlumnos();
-  }, [loadAlumnos]);
 
   return {
     alumnos,

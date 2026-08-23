@@ -1,5 +1,6 @@
 import api from "../axiosConfig";
 import phpApi from "../phpApi";
+import { AsistenciaTipo } from "@/types/asistencia";
 
 export interface AttendanceScanStudent {
   id_alumno: string;
@@ -14,18 +15,24 @@ export interface AttendanceScanResponse {
   status: "ok" | "error";
   msg?: string;
   id_asistencia?: string;
+  tipo?: AsistenciaTipo;
   alumno?: AttendanceScanStudent;
 }
 
-export const registerAttendanceByQR = async ({
-  codigoQR,
-  sidUsuario,
-  sidInstituto,
-}: {
+type AttendanceQRRequest = {
   codigoQR: string;
   sidUsuario: string;
   sidInstituto?: string | null;
-}): Promise<AttendanceScanResponse> => {
+};
+
+const getAttendanceScanErrorMessage = (error: any) =>
+  error.response?.data?.msg ||
+  error.message ||
+  "No se pudo registrar la asistencia";
+
+export const getStudentByAttendanceQR = async (
+  codigoQR: string
+): Promise<AttendanceScanStudent> => {
   try {
     const phpResponse = await phpApi.post<
       AttendanceScanResponse,
@@ -39,6 +46,22 @@ export const registerAttendanceByQR = async ({
       throw new Error(phpResponse.msg || "QR no encontrado");
     }
 
+    return phpResponse.alumno;
+  } catch (error: any) {
+    throw new Error(getAttendanceScanErrorMessage(error));
+  }
+};
+
+export const registerResolvedAttendanceByQR = async ({
+  alumno,
+  sidUsuario,
+  sidInstituto,
+}: {
+  alumno: AttendanceScanStudent;
+  sidUsuario: string;
+  sidInstituto?: string | null;
+}): Promise<AttendanceScanResponse> => {
+  try {
     const response = await api.post<
       AttendanceScanResponse,
       AttendanceScanResponse,
@@ -48,7 +71,7 @@ export const registerAttendanceByQR = async ({
         sid_instituto?: string | null;
       }
     >("/asistencias/registrar-qr", {
-      alumno: phpResponse.alumno,
+      alumno,
       sid_usuario: sidUsuario,
       sid_instituto: sidInstituto || undefined,
     });
@@ -59,10 +82,24 @@ export const registerAttendanceByQR = async ({
 
     return response;
   } catch (error: any) {
-    throw new Error(
-      error.response?.data?.msg ||
-        error.message ||
-        "No se pudo registrar la asistencia"
-    );
+    throw new Error(getAttendanceScanErrorMessage(error));
+  }
+};
+
+export const registerAttendanceByQR = async ({
+  codigoQR,
+  sidUsuario,
+  sidInstituto,
+}: AttendanceQRRequest): Promise<AttendanceScanResponse> => {
+  try {
+    const alumno = await getStudentByAttendanceQR(codigoQR);
+
+    return await registerResolvedAttendanceByQR({
+      alumno,
+      sidUsuario,
+      sidInstituto,
+    });
+  } catch (error: any) {
+    throw new Error(getAttendanceScanErrorMessage(error));
   }
 };

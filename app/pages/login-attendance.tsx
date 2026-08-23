@@ -6,8 +6,11 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -66,7 +69,7 @@ const LoginCorreo = () => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-teal-600"
     >
       <TouchableOpacity
@@ -78,100 +81,109 @@ const LoginCorreo = () => {
         <Ionicons name="arrow-back" size={24} color="#ffffff" />
       </TouchableOpacity>
 
-      <View className="flex-[1.3] justify-end items-center px-6 pb-8">
-        <View className="w-20 h-20 rounded-full bg-white/20 justify-center items-center mb-5">
-          <Ionicons name="person" size={42} color="#ffffff" />
-        </View>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Pressable className="flex-1" onPress={Keyboard.dismiss}>
+          <View className="flex-[1.3] justify-end items-center px-6 pb-8 pt-20">
+            <View className="w-20 h-20 rounded-full bg-white/20 justify-center items-center mb-5">
+              <Ionicons name="person" size={42} color="#ffffff" />
+            </View>
 
-        <Text className="text-white text-3xl font-bold text-center">
-          Bienvenido
-        </Text>
+            <Text className="text-white text-3xl font-bold text-center">
+              Bienvenido
+            </Text>
 
-        <Text className="text-white/80 text-base text-center mt-2">
-          Inicia sesion para continuar
-        </Text>
-      </View>
+            <Text className="text-white/80 text-base text-center mt-2">
+              Inicia sesion para continuar
+            </Text>
+          </View>
 
-      <View className="flex-[2.7] bg-white rounded-t-[35px] px-6 pt-10">
-        <Text className="text-gray-800 text-2xl font-bold">
-          Iniciar sesion
-        </Text>
-
-        <Text className="text-gray-500 mt-2 mb-8">
-          Ingresa tus datos de acceso
-        </Text>
-
-        <View className="mb-5">
-          <Text className="text-gray-700 font-semibold mb-2">
-            Correo electronico
-          </Text>
-
-          <TextInput
-            value={correo}
-            onChangeText={setCorreo}
-            placeholder="correo@ejemplo.com"
-            placeholderTextColor="#9ca3af"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!loading}
-            className="w-full h-14 bg-gray-100 rounded-xl px-4 text-gray-800 border border-gray-200"
-          />
-        </View>
-
-        <View className="mb-3">
-          <Text className="text-gray-700 font-semibold mb-2">
-            Contrasena
-          </Text>
-
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Ingresa tu contrasena"
-            placeholderTextColor="#9ca3af"
-            secureTextEntry
-            editable={!loading}
-            className="w-full h-14 bg-gray-100 rounded-xl px-4 text-gray-800 border border-gray-200"
-          />
-        </View>
-
-        <TouchableOpacity
-          className="self-end mb-7"
-          disabled={loading}
-          onPress={() => router.push("/pages/forgot-attendance" as never)}
-        >
-          <Text className="text-teal-600 font-semibold">
-            Olvidaste tu contrasena?
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleLogin}
-          disabled={loading}
-          activeOpacity={0.8}
-          className={`h-14 rounded-xl justify-center items-center ${
-            loading ? "bg-teal-400" : "bg-teal-600"
-          }`}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#ffffff" />
-          ) : (
-            <Text className="text-white text-base font-bold">
+          <View className="flex-[2.7] bg-white rounded-t-[35px] px-6 pt-10 pb-8">
+            <Text className="text-gray-800 text-2xl font-bold">
               Iniciar sesion
             </Text>
-          )}
-        </TouchableOpacity>
 
-        <View className="mt-8 items-center">
-          <Text className="text-gray-400 text-sm text-center">
-            App Escolar
-          </Text>
+            <Text className="text-gray-500 mt-2 mb-8">
+              Ingresa tus datos de acceso
+            </Text>
 
-          <Text className="text-gray-400 text-xs text-center mt-1">
-            Acceso seguro a tu cuenta
-          </Text>
-        </View>
-      </View>
+            <View className="mb-5">
+              <Text className="text-gray-700 font-semibold mb-2">
+                Correo electronico
+              </Text>
+
+              <TextInput
+                value={correo}
+                onChangeText={setCorreo}
+                placeholder="correo@ejemplo.com"
+                placeholderTextColor="#9ca3af"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
+                className="w-full h-14 bg-gray-100 rounded-xl px-4 text-gray-800 border border-gray-200"
+              />
+            </View>
+
+            <View className="mb-3">
+              <Text className="text-gray-700 font-semibold mb-2">
+                Contrasena
+              </Text>
+
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Ingresa tu contrasena"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry
+                editable={!loading}
+                className="w-full h-14 bg-gray-100 rounded-xl px-4 text-gray-800 border border-gray-200"
+              />
+            </View>
+
+            <TouchableOpacity
+              className="self-end mb-7"
+              disabled={loading}
+              onPress={() => router.push("/pages/forgot-attendance" as never)}
+            >
+              <Text className="text-teal-600 font-semibold">
+                Olvidaste tu contrasena?
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.8}
+              className={`h-14 rounded-xl justify-center items-center ${
+                loading ? "bg-teal-400" : "bg-teal-600"
+              }`}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text className="text-white text-base font-bold">
+                  Iniciar sesion
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            <View className="mt-8 items-center">
+              <Text className="text-gray-400 text-sm text-center">
+                App Escolar
+              </Text>
+
+              <Text className="text-gray-400 text-xs text-center mt-1">
+                Acceso seguro a tu cuenta
+              </Text>
+            </View>
+          </View>
+        </Pressable>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };

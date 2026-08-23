@@ -74,7 +74,7 @@ export default function MensajeCard({
             {archivos.map((archivo) => (
               <TouchableOpacity
                 key={archivo.id_archivo_mensaje ?? `${mensaje.id_mensaje}-${archivo.url}`}
-                onPress={() => Linking.openURL(`${FILES_BASE_URL}/${archivo.url}`)}
+                onPress={() => Linking.openURL(`${archivo.url}`)}
               >
                 <Text className="p-1 text-[#6C757D] underline">
                   {archivo.url}

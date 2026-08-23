@@ -10,7 +10,7 @@ const FILES_BASE_URL = "https://aplicacionescolar.com/sistema/archivos";
 
 interface CalificacionCardProps {
   calificacion: Calificacion;
-  onDownloadReport: (idEvaluacion: string) => void;
+  onDownloadReport: (idAlumno: string, ciclo?: string) => void;
 }
 
 function getAlumnoImageUri(foto: Calificacion["foto"]) {
@@ -66,7 +66,9 @@ export default function CalificacionCard({
         <TouchableOpacity
           activeOpacity={0.75}
           className="w-[250px] flex-row items-center justify-center rounded-md border border-[#11452D] px-5 py-1.5"
-          onPress={() => onDownloadReport(calificacion.id_evaluacion)}
+          onPress={() =>
+            onDownloadReport(calificacion.id_alumno, calificacion.ciclo)
+          }
         >
           <FontAwesome name="file-pdf-o" size={15} color="#11452D" />
           <Text className="ml-2 text-center text-[15px] text-[#11452D]">

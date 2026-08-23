@@ -18,7 +18,6 @@ import { useSelectedAlumnoName } from "@/hooks/useSelectedAlumnoName";
 
 export default function Attendance() {
   const {
-    asistenciasHoy,
     asistencias,
     notifications,
     loadAsistencias,
@@ -31,8 +30,7 @@ export default function Attendance() {
   const showSkeleton =
     loading &&
     !refreshing &&
-    asistencias.length === 0 &&
-    asistenciasHoy.length === 0;
+    asistencias.length === 0;
 
   return (
     <SafeAreaView className="flex-1 bg-[#0D6EFD]">
@@ -61,35 +59,7 @@ export default function Attendance() {
               <>
                 <View className="mx-5 my-2.5 rounded-md bg-white p-3">
                   <Text className="text-center text-lg font-bold text-[#212529]">
-                    Asistencias
-                  </Text>
-                </View>
-
-                <View className="mx-5 mb-2.5 rounded-md bg-[#E8F1FF] p-3">
-                  <Text className="text-center text-base font-bold text-[#0D6EFD]">
-                    Hoy
-                  </Text>
-                </View>
-
-                {asistenciasHoy.length > 0 ? (
-                  asistenciasHoy.map((asistencia) => (
-                    <AsistenciaCard
-                      key={asistencia.id_asistencia}
-                      asistencia={asistencia}
-                      highlighted
-                    />
-                  ))
-                ) : (
-                  <View className="mx-5 mb-5 rounded-md bg-white p-4">
-                    <Text className="text-center text-[#6C757D]">
-                      No hay asistencias registradas hoy.
-                    </Text>
-                  </View>
-                )}
-
-                <View className="mx-5 mb-2.5 rounded-md bg-white p-3">
-                  <Text className="text-center text-base font-bold text-[#212529]">
-                    Historial
+                    Historial de Asistencias
                   </Text>
                 </View>
               </>
